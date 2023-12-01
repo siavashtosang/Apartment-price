@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.example.aprice.ui.data.APriceViewModel
 import com.example.aprice.ui.detail.MainDetailScreen
 import com.example.aprice.ui.master.MainHomeScreen
+import com.example.aprice.ui.master.MainSettingsScreen
 
 @Composable
 fun SetupNavGraph(navHostController: NavHostController) {
@@ -36,6 +37,20 @@ fun SetupNavGraph(navHostController: NavHostController) {
         composable(route = Screen.DetailScreen.route) {
             MainDetailScreen(navHostController,
                 itemState = viewModel.itemsState)
+        }
+        composable(route = Screen.SettingsScreen.route){
+            MainSettingsScreen(navHostController,
+                calculateState = viewModel.calculateState,
+                onLessElevator = viewModel::lessElevator,
+                onLessGarage = viewModel::lessGarage,
+                onLessLoan = viewModel::lessLoan,
+                onConfirmLoanYear = viewModel::confirmLoanYear,
+                onBalancePercent = viewModel::balancePercent,
+                onSave = viewModel::insertNewSetting,
+                settingsState = viewModel.settingsState)
+        }
+        composable(route  = Screen.HistoryScreen.route){
+
         }
     }
 }

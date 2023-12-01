@@ -1,5 +1,6 @@
 package com.example.aprice.ui.detail
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,16 +10,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -29,14 +33,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.aprice.R
 import com.example.aprice.ui.data.Items
-import com.example.aprice.ui.data.priceFilter
 import com.example.aprice.ui.data.withThousands
 import com.example.aprice.ui.theme.theme.APriceTheme
 
@@ -46,6 +53,7 @@ fun MainDetailScreen(
     navHostController: NavHostController,
     itemState: Items
 ) {
+
     Scaffold(
         topBar = {
             TopAppBar(navigationIcon = {
@@ -62,7 +70,7 @@ fun MainDetailScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
 
-                        Text(text = "محاسبه گر قیمت ساختمان")
+                        Text(text = "جزئیات")
                     }
                 })
         },
@@ -86,21 +94,85 @@ fun DetailScreen(itemState: Items) {
         true -> "دارد"
         false -> "ندارد"
     }
+    val loan = when (itemState.loan) {
+        true -> "دارد"
+        false -> "ندارد"
+    }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Column(modifier = Modifier) {
-            Card(
-                modifier = Modifier.padding(24.dp), shape = ShapeDefaults.Small,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                        alpha = 0.2f
-                    )
-                )
-            ) {
+        Card(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 16.dp)
+        ) {
+            Surface(color =Color(0xFFF3E1DD)) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(32.dp)
                 ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(50.dp)
+                    )
+                    Spacer(modifier = Modifier.size(150.dp))
+                    Text(
+                        text = "کل مبلغ",
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = itemState.finalPrice.toString().withThousands(),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = "تومان",
+                            modifier = Modifier.padding(start = 16.dp),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    ) {
+                        Row {
+                            Text(
+                                text = itemState.tenPercentageIncrease.toString().withThousands(),
+                                color = Color(0xFF8FB86C),
+                                modifier = Modifier.padding(),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDropUp, contentDescription = null,
+                                modifier = Modifier
+                            )
+                        }
+                        Row {
+                            Text(
+                                text = itemState.tenPercentageDecrease.toString().withThousands(),
+                                color = Color(0xFF89023E),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDropDown, contentDescription = null,
+                                modifier = Modifier
+                            )
+                        }
+                    }
+                }
+
+            }
+            Surface(color =Color(0xFFF7D3D4)) {
+                Column (modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally){
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -111,10 +183,11 @@ fun DetailScreen(itemState: Items) {
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "عمر بنا")
+                            Text(text = "عمر بنا", style = MaterialTheme.typography.titleMedium)
                             Text(
                                 text = "$apartmentAge سال ",
-                                modifier = Modifier.alpha(0.6f)
+                                modifier = Modifier.alpha(0.6f),
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                         Column(
@@ -122,8 +195,8 @@ fun DetailScreen(itemState: Items) {
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "طبقه")
-                            Text(text = itemState.floor, modifier = Modifier.alpha(0.6f))
+                            Text(text = "طبقه",style = MaterialTheme.typography.titleMedium)
+                            Text(text = itemState.floor, modifier = Modifier.alpha(0.6f),style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                     Spacer(modifier = Modifier.size(24.dp))
@@ -137,8 +210,8 @@ fun DetailScreen(itemState: Items) {
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "پارکینگ")
-                            Text(text = garage, modifier = Modifier.alpha(0.6f))
+                            Text(text = "پارکینگ",style = MaterialTheme.typography.titleMedium)
+                            Text(text = garage, modifier = Modifier.alpha(0.6f),style = MaterialTheme.typography.bodyMedium)
 
                         }
                         Column(
@@ -146,67 +219,44 @@ fun DetailScreen(itemState: Items) {
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "آسانسور")
-                            Text(text = elevator, modifier = Modifier.alpha(0.6f))
+                            Text(text = "آسانسور",style = MaterialTheme.typography.titleMedium)
+                            Text(text = elevator, modifier = Modifier.alpha(0.6f), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    Column(
-                        modifier = Modifier.padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "قیمت هر متر مربع")
-                        Text(
-                            text = "${itemState.apartmentPrice.withThousands()} تومان ",
-                            modifier = Modifier.alpha(0.6f)
-                        )
+                    Spacer(modifier = Modifier.size(24.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = "قیمت هر متر مربع",style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = "${itemState.apartmentPrice.withThousands()} تومان ",
+                                modifier = Modifier.alpha(0.6f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = "امکان دریافت وام",style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = loan,
+                                modifier = Modifier.alpha(0.6f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                 }
             }
-            Text(
-                text = "قیمت نهایی با 10% افزایش قیمت",
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp)
-            )
-            OutlinedTextField(
-                value = itemState.tenPercentageIncrease.toString().withThousands(),
-                onValueChange = { },
-                modifier = Modifier
-                    .padding(vertical = 8.dp, horizontal = 24.dp)
-                    .fillMaxWidth(),
-                readOnly = true,
-                prefix = { Text(text = "تومان ") },
-                singleLine = true,
-            )
-            Text(
-                text = "قیمت نهایی حساب شده",
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp)
-            )
-            OutlinedTextField(
-                value = priceFilter(text = itemState.finalPrice.toString()).text.toString(),
-                onValueChange = { },
-                modifier = Modifier
-                    .padding(vertical = 8.dp, horizontal = 24.dp)
-                    .fillMaxWidth(),
-                readOnly = true,
-                prefix = { Text(text = "تومان ") },
-                singleLine = true,
-            )
-            Text(
-                text = "قیمت نهایی با 10% کاهش قیمت",
-                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp)
-            )
-            OutlinedTextField(
-                value = itemState.tenPercentageDecrease.toString().withThousands(),
-                onValueChange = { },
-                modifier = Modifier
-                    .padding(vertical = 8.dp, horizontal = 24.dp)
-                    .fillMaxWidth(),
-                readOnly = true,
-                prefix = { Text(text = "تومان ") },
-                singleLine = true,
-            )
         }
-
     }
 }
 

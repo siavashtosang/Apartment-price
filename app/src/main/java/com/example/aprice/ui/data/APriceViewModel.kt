@@ -4,12 +4,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class APriceViewModel @Inject constructor() : ViewModel() {
+class APriceViewModel @Inject constructor(private val repository: ApriceRepository) : ViewModel() {
     var itemsState by mutableStateOf(Items())
+    var settingsState by  mutableStateOf(SettingItems())
     var calculateState by mutableStateOf(Calculate())
         private set
 
@@ -33,34 +37,113 @@ class APriceViewModel @Inject constructor() : ViewModel() {
         itemsState = itemsState.copy(elevator = newValue)
     }
 
+    fun lessElevator(newValue: String) {
+        calculateState = calculateState.copy(lessElevator = newValue)
+    }
+
+    fun lessGarage(newValue: String) {
+        calculateState = calculateState.copy(lessGarage = newValue)
+    }
+
+    fun lessLoan(newValue: String) {
+        calculateState = calculateState.copy(lessLoan = newValue)
+    }
+
+    fun confirmLoanYear(newValue: String) {
+        calculateState = calculateState.copy(confirmLoanYear = newValue)
+    }
+
+    fun balancePercent(newValue: String) {
+        calculateState = calculateState.copy(balancePercent = newValue)
+    }
+
     fun apartmentPrice(items: Items = itemsState, calculate: Calculate = calculateState) {
         val apartmentPrice = items.apartmentPrice.toLong()
         val firstStep =
-            ((apartmentPrice * calculate.firstPercent) * (items.currentDate - items.apartmentAge)).toLong()
+            ((apartmentPrice * (calculate.firstPercent.toDouble() / 100)) * (items.currentDate - items.apartmentAge)).toLong()
         var finalPrice = apartmentPrice - firstStep
         if (!items.elevator) {
-            val floor = ((items.floor.toInt() - 1) * calculate.lessElevator) * finalPrice
+            val floor =
+                ((items.floor.toInt() - 1) * (calculate.lessElevator.toDouble() / 100)) * finalPrice
             finalPrice = (finalPrice - floor).toLong()
         }
         if (!items.garage) {
-            val garage = finalPrice * calculate.lessGarage
+            val garage = finalPrice * (calculate.lessGarage.toDouble() / 100)
             finalPrice = (finalPrice - garage).toLong()
         }
-        if ((items.currentDate - items.apartmentAge) >= 26) {
-            val loan = finalPrice * calculate.lessLoan
+        if ((items.currentDate - items.apartmentAge) >= calculate.confirmLoanYear.toInt()) {
+            items.loan = false
+            val loan = finalPrice * (calculate.lessLoan.toDouble() / 100)
             finalPrice = (finalPrice - loan).toLong()
+        } else {
+            items.loan = true
+        }
+        if (finalPrice <= 0) {
+            finalPrice = 0
+        }
+        if (finalPrice >= items.apartmentPrice.toLong()) {
+            finalPrice = items.apartmentPrice.toLong()
         }
         items.finalPrice = finalPrice
-        val balancePercent =  (finalPrice * calculate.balancePercent)
-        items.tenPercentageIncrease = (finalPrice + balancePercent).toLong()
+        val balancePercent = (finalPrice * (calculate.balancePercent.toDouble() / 100))
+        var tenPercentageIncrease = (finalPrice + balancePercent).toLong()
+        if (tenPercentageIncrease >= items.apartmentPrice.toLong()) {
+            tenPercentageIncrease = items.apartmentPrice.toLong()
+        }
+        items.tenPercentageIncrease = tenPercentageIncrease
+
         items.tenPercentageDecrease = (finalPrice - balancePercent).toLong()
 
     }
+
+    fun insertNewSetting(){
+        viewModelScope.launch {
+            repository.insertSettingItems(
+                Settings(
+                    lessElevator = calculateState.lessElevator,
+                    lessGarage = calculateState.lessGarage,
+                    lessLoan = calculateState.lessLoan,
+                    balancePercent = calculateState.balancePercent,
+                    confirmLoanYear = calculateState.confirmLoanYear
+                )
+            )
+        }
+    }
+
+    fun updateNewSetting(){
+        viewModelScope.launch {
+            repository.updateSettingItems(
+                Settings(
+                    lessElevator = calculateState.lessElevator,
+                    lessGarage = calculateState.lessGarage,
+                    lessLoan = calculateState.lessLoan,
+                    balancePercent = calculateState.balancePercent,
+                    confirmLoanYear = calculateState.confirmLoanYear
+                )
+            )
+        }
+    }
+
+    init {
+        getSettings()
+    }
+    private fun getSettings(){
+        viewModelScope.launch {
+            repository.allSettingItems().collectLatest {
+                settingsState = settingsState.copy(settings = it)
+            }
+        }
+    }
 }
 
+
+
+data class SettingItems(
+    val settings: Settings? = null
+)
 data class Items(
     var apartmentPrice: String = "",
-    var apartmentAge: Int = 0,
+    var apartmentAge: Int = 1402,
     var floor: String = "",
     var garage: Boolean = false,
     var elevator: Boolean = false,
@@ -72,10 +155,11 @@ data class Items(
 )
 
 data class Calculate(
-    var firstPercent: Double = 0.015,
-    var lessElevator: Double = 0.033,
-    var lessGarage: Double = 0.125,
-    var lessLoan: Double = 0.2,
-    var balancePercent: Double = 0.1,
+    var firstPercent: String = "1.5",
+    var lessElevator: String = "3.3",
+    var lessGarage: String = "12.5",
+    var lessLoan: String = "20",
+    var confirmLoanYear: String = "26",
+    var balancePercent: String = "5",
 
     )

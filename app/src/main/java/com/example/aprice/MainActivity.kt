@@ -6,11 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.aprice.navigation.SetupNavGraph
-import com.example.aprice.ui.master.MainHomeScreen
 import com.example.aprice.ui.theme.theme.APriceTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,7 +23,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SetupNavGraph(navHostController = navHostController )
+                    SetupNavGraph(navHostController = navHostController)
                 }
             }
         }
