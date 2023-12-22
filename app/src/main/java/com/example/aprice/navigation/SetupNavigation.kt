@@ -31,7 +31,8 @@ fun SetupNavGraph(navHostController: NavHostController) {
                 onGarage = viewModel::onGarage,
                 onSave = {
                     viewModel.apartmentPrice()
-                }
+                },
+                settingItems = viewModel.settingsState
             )
         }
         composable(route = Screen.DetailScreen.route) {

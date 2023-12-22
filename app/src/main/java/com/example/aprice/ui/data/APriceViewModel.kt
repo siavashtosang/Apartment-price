@@ -1,12 +1,12 @@
 package com.example.aprice.ui.data
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -57,23 +57,23 @@ class APriceViewModel @Inject constructor(private val repository: ApriceReposito
         calculateState = calculateState.copy(balancePercent = newValue)
     }
 
-    fun apartmentPrice(items: Items = itemsState, calculate: Calculate = calculateState) {
+    fun apartmentPrice(items: Items = itemsState, setting: SettingItems = settingsState) {
         val apartmentPrice = items.apartmentPrice.toLong()
         val firstStep =
-            ((apartmentPrice * (calculate.firstPercent.toDouble() / 100)) * (items.currentDate - items.apartmentAge)).toLong()
+            ((apartmentPrice * (1.5 / 100)) * (items.currentDate - items.apartmentAge)).toLong()
         var finalPrice = apartmentPrice - firstStep
         if (!items.elevator) {
             val floor =
-                ((items.floor.toInt() - 1) * (calculate.lessElevator.toDouble() / 100)) * finalPrice
+                ((items.floor.toInt() - 1) * (setting.settings?.lessElevator?.toDouble()?.div(100)!!)) * finalPrice
             finalPrice = (finalPrice - floor).toLong()
         }
         if (!items.garage) {
-            val garage = finalPrice * (calculate.lessGarage.toDouble() / 100)
+            val garage = finalPrice * ((setting.settings?.lessGarage?.toDouble())?.div(100)!!)
             finalPrice = (finalPrice - garage).toLong()
         }
-        if ((items.currentDate - items.apartmentAge) >= calculate.confirmLoanYear.toInt()) {
+        if ((items.currentDate - items.apartmentAge) >= setting.settings?.confirmLoanYear?.toInt()!!) {
             items.loan = false
-            val loan = finalPrice * (calculate.lessLoan.toDouble() / 100)
+            val loan = finalPrice * (setting.settings.lessLoan.toDouble() / 100)
             finalPrice = (finalPrice - loan).toLong()
         } else {
             items.loan = true
@@ -85,7 +85,7 @@ class APriceViewModel @Inject constructor(private val repository: ApriceReposito
             finalPrice = items.apartmentPrice.toLong()
         }
         items.finalPrice = finalPrice
-        val balancePercent = (finalPrice * (calculate.balancePercent.toDouble() / 100))
+        val balancePercent = (finalPrice * (setting.settings.balancePercent.toDouble() / 100))
         var tenPercentageIncrease = (finalPrice + balancePercent).toLong()
         if (tenPercentageIncrease >= items.apartmentPrice.toLong()) {
             tenPercentageIncrease = items.apartmentPrice.toLong()
@@ -107,6 +107,7 @@ class APriceViewModel @Inject constructor(private val repository: ApriceReposito
                     confirmLoanYear = calculateState.confirmLoanYear
                 )
             )
+            Log.i("SiaTest", "insertNewSetting: ${settingsState.settings}")
         }
     }
 
@@ -129,7 +130,7 @@ class APriceViewModel @Inject constructor(private val repository: ApriceReposito
     }
     private fun getSettings(){
         viewModelScope.launch {
-            repository.allSettingItems().collectLatest {
+            repository.allSettingItems().collect {
                 settingsState = settingsState.copy(settings = it)
             }
         }
@@ -156,10 +157,10 @@ data class Items(
 
 data class Calculate(
     var firstPercent: String = "1.5",
-    var lessElevator: String = "3.3",
-    var lessGarage: String = "12.5",
-    var lessLoan: String = "20",
-    var confirmLoanYear: String = "26",
-    var balancePercent: String = "5",
+    val lessElevator: String = "" ,
+    var lessGarage: String = "",
+    var lessLoan: String = "",
+    var confirmLoanYear: String = "",
+    var balancePercent: String = "",
 
     )

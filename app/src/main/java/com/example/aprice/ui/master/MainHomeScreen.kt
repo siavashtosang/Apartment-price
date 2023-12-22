@@ -1,5 +1,6 @@
 package com.example.aprice.ui.master
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
@@ -7,18 +8,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,8 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -48,6 +50,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,9 +64,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.aprice.navigation.Screen
 import com.example.aprice.ui.data.Items
-import com.example.aprice.ui.theme.theme.APriceTheme
+import com.example.aprice.ui.data.SettingItems
+import com.example.aprice.ui.theme.theme.ApriceTheme
 import com.razaghimahdi.compose_persian_date.core.NumberPicker
-import com.razaghimahdi.compose_persian_date.core.rememberPersianDatePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -80,7 +83,10 @@ fun MainHomeScreen(
     onGarage: (Boolean) -> Unit,
     onElevator: (Boolean) -> Unit,
     onSave: () -> Unit,
+    settingItems: SettingItems,
 ) {
+
+    var fillDbSetting by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableIntStateOf(0) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val items = listOf("خانه", "تنظیمات")
@@ -90,6 +96,9 @@ fun MainHomeScreen(
     enableButton = (itemState.apartmentPrice.isNotBlank()
             && itemState.apartmentAge > 0
             && itemState.floor.isNotBlank())
+
+    fillDbSetting =
+        settingItems.settings?.lessElevator?.isNotEmpty() == true && settingItems.settings.lessGarage.isNotEmpty() && settingItems.settings.lessLoan.isNotEmpty() && settingItems.settings.confirmLoanYear.isNotEmpty() && settingItems.settings.confirmLoanYear.isNotEmpty()
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Scaffold(topBar = {
@@ -114,7 +123,10 @@ fun MainHomeScreen(
                                 }
                             }
                         }) {
-                            Icon(imageVector = Icons.Filled.Menu, contentDescription = "menu")
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = "menu"
+                            )
                         }
 
                     }
@@ -141,48 +153,52 @@ fun MainHomeScreen(
             Box(modifier = Modifier.padding(it)) {
                 ModalNavigationDrawer(drawerState = drawerState,
                     drawerContent = {
-                        ModalDrawerSheet {
-                            NavigationRail {
-                                items.forEachIndexed { index, item ->
-                                    NavigationRailItem(
-                                        selected = selectedItem == index,
-                                        onClick = {
-                                            selectedItem = index
-                                            when (index) {
-                                                0 -> {
-                                                    navHostController.navigate(Screen.HomeScreen.route)
-                                                }
-
-                                                1 -> {
-                                                    navHostController.navigate(Screen.SettingsScreen.route)
-                                                }
+                        ModalDrawerSheet(modifier = Modifier.width(250.dp)) {
+                            items.forEachIndexed { index, item ->
+                                NavigationDrawerItem(
+                                    selected = selectedItem == index,
+                                    onClick = {
+                                        selectedItem = index
+                                        when (index) {
+                                            0 -> {
+                                                navHostController.navigate(Screen.HomeScreen.route)
                                             }
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = icons[index],
-                                                contentDescription = item
-                                            )
-                                        },
-                                        label = { Text(text = item) },
-                                        modifier = Modifier.padding(start = 6.dp, top = 8.dp)
-                                    )
-                                }
+
+                                            1 -> {
+                                                navHostController.navigate(Screen.SettingsScreen.route)
+                                            }
+                                        }
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = icons[index],
+                                            contentDescription = item
+                                        )
+                                    },
+                                    label = { Text(text = item) },
+                                    modifier = Modifier.padding(start = 6.dp, top = 16.dp)
+                                )
+
                             }
+
 
                         }
                     }
                 ) {
-                    HomeScreen(
-                        itemState,
-                        scope,
-                        onApartmentPrice,
-                        onApartmentAge,
-                        onFloor,
-                        onGarage,
-                        onElevator
-                    )
+                    if (fillDbSetting) {
+                        HomeScreen(
+                            itemState,
+                            scope,
+                            onApartmentPrice,
+                            onApartmentAge,
+                            onFloor,
+                            onGarage,
+                            onElevator,
+                        )
 
+                    } else {
+                        ErrorScreen(navHostController = navHostController)
+                    }
 
                 }
             }
@@ -200,18 +216,23 @@ fun HomeScreen(
     onApartmentAge: (Int) -> Unit,
     onFloor: (String) -> Unit,
     onGarage: (Boolean) -> Unit,
-    onElevator: (Boolean) -> Unit
+    onElevator: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val rememberPersianDatePicker = rememberPersianDatePicker()
+
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
+
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        rememberPersianDatePicker.updateMinYear(1300)
-        rememberPersianDatePicker.updateMaxYear(1500)
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+
+
+        Column(modifier = modifier.verticalScroll(rememberScrollState())) {
             Spacer(modifier = Modifier.size(16.dp))
-            Text(text = "قیمت پایه را بر حسب متر مربع وارد کنید", modifier = Modifier.padding(start = 24.dp))
+            Text(
+                text = "قیمت پایه را بر حسب متر مربع وارد کنید",
+                modifier = Modifier.padding(start = 24.dp)
+            )
             OutlinedTextField(
                 value = itemState.apartmentPrice,
                 onValueChange = {
@@ -273,16 +294,20 @@ fun HomeScreen(
                         range = 1300..1500,
                         textStyle = MaterialTheme.typography.bodyLarge
                     )
-                    Button(onClick = {
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                }
                             }
-                        }
-                    },
-                        modifier = Modifier.fillMaxWidth().padding(24.dp), shape = ShapeDefaults.Small) {
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp), shape = ShapeDefaults.Small
+                    ) {
                         Text(text = "تایید")
                     }
                 }
@@ -334,19 +359,51 @@ fun HomeScreen(
 
 }
 
+@Composable
+fun ErrorScreen(navHostController: NavHostController, modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxSize()
+    ) {
+        Text(text = "لطفا تنظیمات را وارد کنید!", style = MaterialTheme.typography.headlineLarge)
+        Spacer(modifier = Modifier.size(16.dp))
+        Button(
+            onClick = { navHostController.navigate(Screen.SettingsScreen.route) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 24.dp)
+        ) {
+            Text(text = "تنظیمات", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ErrorScreenPreview() {
+    MaterialTheme {
+        ErrorScreen(navHostController = rememberNavController())
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
     MaterialTheme {
-        APriceTheme {
-            MainHomeScreen(navHostController = rememberNavController(),
+        ApriceTheme {
+            MainHomeScreen(
+                navHostController = rememberNavController(),
                 itemState = Items(),
                 onApartmentPrice = {},
                 onApartmentAge = {},
                 onElevator = {},
                 onFloor = {},
                 onGarage = {},
-                onSave = {})
+                onSave = {},
+                settingItems = SettingItems()
+            )
         }
     }
 }

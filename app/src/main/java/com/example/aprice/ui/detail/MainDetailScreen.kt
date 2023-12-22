@@ -45,7 +45,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.aprice.R
 import com.example.aprice.ui.data.Items
 import com.example.aprice.ui.data.withThousands
-import com.example.aprice.ui.theme.theme.APriceTheme
+import com.example.aprice.ui.theme.theme.ApriceTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +105,7 @@ fun DetailScreen(itemState: Items) {
                 .padding(24.dp),
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 16.dp)
         ) {
-            Surface(color =Color(0xFFF3E1DD)) {
+            Surface(color = MaterialTheme.colorScheme.tertiaryContainer) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -114,7 +114,7 @@ fun DetailScreen(itemState: Items) {
                     Image(
                         painter = painterResource(id = R.drawable.logo),
                         contentDescription = null,
-                        modifier = Modifier.size(50.dp)
+                        modifier = Modifier.size(80.dp,).padding(top = 16.dp)
                     )
                     Spacer(modifier = Modifier.size(150.dp))
                     Text(
@@ -170,7 +170,7 @@ fun DetailScreen(itemState: Items) {
                 }
 
             }
-            Surface(color =Color(0xFFF7D3D4)) {
+            Surface(color = MaterialTheme.colorScheme.tertiary) {
                 Column (modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally){
 
                     Row(
@@ -264,7 +264,7 @@ fun DetailScreen(itemState: Items) {
 @Composable
 fun DetailScreenPreview() {
     MaterialTheme {
-        APriceTheme {
+        ApriceTheme {
             MainDetailScreen(
                 navHostController = rememberNavController(),
                 itemState = Items()

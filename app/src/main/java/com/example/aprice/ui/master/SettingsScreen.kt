@@ -36,7 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.aprice.navigation.Screen
 import com.example.aprice.ui.data.Calculate
 import com.example.aprice.ui.data.SettingItems
-import com.example.aprice.ui.theme.theme.APriceTheme
+import com.example.aprice.ui.theme.theme.ApriceTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,7 +121,6 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(text = "اگر آسانسور نداشت", modifier = Modifier.padding(bottom = 6.dp))
-
             OutlinedTextField(
                 value = calculateState.lessElevator,
                 onValueChange = { onLessElevator.invoke(it) },
@@ -132,8 +131,8 @@ fun SettingsScreen(
                 label = { Text(text = "درصد") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 suffix = { Text(text = "%") },
+                supportingText = { Text(text = " درصد ذخیره شده : ${settingsState.settings?.lessElevator ?: "0"}%") }
             )
-
             Text(text = "اگر پارکینگ نداشت", modifier = Modifier.padding(bottom = 6.dp))
             OutlinedTextField(value = calculateState.lessGarage,
                 onValueChange = { onLessGarage.invoke(it) },
@@ -143,7 +142,9 @@ fun SettingsScreen(
                 singleLine = true,
                 label = { Text(text = "درصد") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                suffix = { Text(text = "%") })
+                suffix = { Text(text = "%") },
+                supportingText = { Text(text = " درصد ذخیره شده : ${settingsState.settings?.lessGarage ?: "0"}%") }
+            )
             Text(text = "امکان دریافت وام از چند سال", modifier = Modifier.padding(bottom = 6.dp))
             OutlinedTextField(value = calculateState.confirmLoanYear,
                 onValueChange = {
@@ -157,7 +158,8 @@ fun SettingsScreen(
                 singleLine = true,
                 label = { Text(text = "عمر بنا") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                suffix = { Text(text = "سال") })
+                suffix = { Text(text = "سال") },
+                supportingText = { Text(text = " درصد ذخیره شده : ${settingsState.settings?.confirmLoanYear ?: "0"}%") })
             Text(text = "اگر امکان دریافت وام نداشت", modifier = Modifier.padding(bottom = 6.dp))
             OutlinedTextField(value = calculateState.lessLoan,
                 onValueChange = { onLessLoan.invoke(it) },
@@ -167,7 +169,8 @@ fun SettingsScreen(
                 singleLine = true,
                 label = { Text(text = "درصد") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                suffix = { Text(text = "%") })
+                suffix = { Text(text = "%") },
+                supportingText = { Text(text = " درصد ذخیره شده : ${settingsState.settings?.lessLoan ?: "0"}%") })
             Text(text = "میزان سقف و کف قیمت", modifier = Modifier.padding(bottom = 6.dp))
             OutlinedTextField(value = calculateState.balancePercent,
                 onValueChange = { onBalancePercent.invoke(it) },
@@ -177,7 +180,8 @@ fun SettingsScreen(
                 singleLine = true,
                 label = { Text(text = "درصد") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                suffix = { Text(text = "%") })
+                suffix = { Text(text = "%") },
+                supportingText = { Text(text = " درصد ذخیره شده : ${settingsState.settings?.balancePercent ?: "0"}%") })
         }
     }
 }
@@ -186,10 +190,10 @@ fun SettingsScreen(
 @Composable
 fun MainSettingsScreenPreview() {
     MaterialTheme {
-        APriceTheme {
+        ApriceTheme {
             MainSettingsScreen(
                 navHostController = rememberNavController(),
-                calculateState = Calculate(),
+                calculateState = Calculate(lessElevator = ""),
                 onBalancePercent = {},
                 onConfirmLoanYear = {},
                 onLessElevator = {},
